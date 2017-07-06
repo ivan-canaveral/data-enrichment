@@ -493,7 +493,7 @@ def create_folder(path = './nueva_carpeta'):
     if not os.path.exists(path):
         os.makedirs(path)
 
-def download_image(url, destination, image_name, extension = '.jpg'):
+def download_image(url, destination, image_name, extension = 'jpg'):
     ''' download an image from an url
     
     Keyword arguments:
@@ -502,7 +502,7 @@ def download_image(url, destination, image_name, extension = '.jpg'):
     image_name  : String
     extension   : String   - default: .jpg
     '''
-    urllib.request.urlretrieve(url, destination + '/' + image_name + extension)
+    urllib.request.urlretrieve(url, destination + '/' + image_name + '.' + extension)
     
 def download_product_images(product_dict, folder_name = 'product_images'):
     ''' download al the product images from a product_dict, where product_list 
@@ -518,7 +518,7 @@ def download_product_images(product_dict, folder_name = 'product_images'):
         download_image(url, folder_name, product_id)
 #        print('Descarga completa', product_id)
         
-def load_image(directory, name, mode = 'bw', extension = ''):
+def load_image(name, directory='.', mode = 'bw', extension = ''):
     ''' Returns a numpy array with the info about the pixels in the image
     
     Keyword arguments:
@@ -539,7 +539,7 @@ def format_image_list(directory, extension):
     jpg_list_object = filter(expression.search, files)
     return list(jpg_list_object)
 
-def image_list(directory, extension_list):
+def image_list(directory, extension_list = ['jpg', 'jpeg', 'png', 'bmp']):
     files = []
     for extension in extension_list:
         files = files + format_image_list(directory, extension)
@@ -559,3 +559,37 @@ def load_and_resize_image(name, size, directory='.', mode = 'bw', extension = ''
     elif mode == 'bw':
         arr = imresize(imread(directory + '/' + name + extension, flatten = True), size)
     return arr
+
+def load_images(directory, size = None, coloring = 'bw'):
+    files = image_list(directory)
+    for file in files:
+        if size == None: yield load_image(file, mode = coloring)
+        else : yield load_and_resize_image(file, size, mode = coloring)
+        
+def to_image(arr, name, directory = '.', extension = ''):
+    imsave(directory + '/' + name + '.' + extension)
+
+def weight_to_rgb(x):
+    return (x+1)*255/2
+
+def filter_to_rgb(filt):
+    return weight_to_rgb(filt)
+
+def filters_to_images(arr, directory = '.'):
+    ''' Save the images assiciated with the filters contained in arr
+    arr is supposed to have shape (n_pixel_x, n_pixel_y, depth, n_classes)
+    
+    Keyword arguments:
+        arr -- array containing all the filters
+    '''
+    sh = arr.shape
+    assert len(sh) == 4, '[ERR] -- filtering array shape is not properly adjusted'
+    arr_t = arr.transpose()
+    n_classes, depth, x, y = arr_t.shape
+    
+    root = './filters'
+    create_folder(root)
+    for n_class in range(n_classes):
+        create_folder(root + '/%03d_class' % n_class)
+    
+        
