@@ -539,7 +539,7 @@ def format_image_list(directory, extension):
     jpg_list_object = filter(expression.search, files)
     return list(jpg_list_object)
 
-def image_list(directory, extension_list = ['jpg', 'jpeg', 'png', 'bmp']):
+def image_list(directory='.', extension_list = ['jpg', 'jpeg', 'png', 'bmp']):
     files = []
     for extension in extension_list:
         files = files + format_image_list(directory, extension)
@@ -567,7 +567,7 @@ def load_images(directory, size = None, coloring = 'bw'):
         else : yield load_and_resize_image(file, size, mode = coloring)
         
 def to_image(arr, name, directory = '.', extension = ''):
-    imsave(directory + '/' + name + '.' + extension)
+    imsave(directory + '/' + name + extension, arr)
 
 def weight_to_rgb(x):
     return (x+1)*255/2
@@ -584,12 +584,14 @@ def filters_to_images(arr, directory = '.'):
     '''
     sh = arr.shape
     assert len(sh) == 4, '[ERR] -- filtering array shape is not properly adjusted'
-    arr_t = arr.transpose()
-    n_classes, depth, x, y = arr_t.shape
+#    arr_t = arr.transpose()
+#    n_classes, depth, x, y = arr_t.shape
+    x, y, depth, n_classes = arr.shape
     
     root = './filters'
     create_folder(root)
     for n_class in range(n_classes):
         create_folder(root + '/%03d_class' % n_class)
     
-        
+        for step in range(depth):
+            to_image(arr[:, :, step, n_class], '/%03d' % step, root + '/%03d_class' % n_class, '.jpg')
